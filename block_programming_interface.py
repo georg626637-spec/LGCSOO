@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import messagebox
-import math
 
 class Block:
     """Represents a draggable block in the canvas"""
@@ -115,6 +114,8 @@ class Block:
         self.x += dx
         self.y += dy
         self.canvas.delete(self.rect, self.label)
+        # Delete all connector ovals before redrawing
+        self.canvas.delete('connector')
         self.inputs = []
         self.outputs = []
         self.draw()
@@ -140,6 +141,7 @@ class BlockProgrammingInterface:
         self.selected_block = None
         self.connecting = False
         self.connection_start = None
+        self.connection_text_id = None
         
         # Create main frame
         main_frame = tk.Frame(root)
@@ -225,7 +227,7 @@ class BlockProgrammingInterface:
                 if not self.connecting:
                     self.connecting = True
                     self.connection_start = block
-                    self.canvas.create_text(event.x, event.y - 30, text="Click target", 
+                    self.connection_text_id = self.canvas.create_text(event.x, event.y - 30, text="Click target", 
                                            fill='blue', font=('Arial', 8))
                 else:
                     # Complete connection
@@ -234,15 +236,23 @@ class BlockProgrammingInterface:
                         self.draw_connection(self.connection_start, block)
                     self.connecting = False
                     self.connection_start = None
+                    # Delete the instruction text
+                    if self.connection_text_id:
+                        self.canvas.delete(self.connection_text_id)
+                        self.connection_text_id = None
                 break
     
     def draw_connection(self, from_block, to_block):
         """Draw a connection line between blocks"""
-        from_x, from_y = from_block.get_output_connector()
-        to_x, to_y = to_block.get_input_connector()
+        from_connector = from_block.get_output_connector()
+        to_connector = to_block.get_input_connector()
         
-        self.canvas.create_line(from_x, from_y, to_x, to_y,
-                               fill='blue', width=2, tags='connection')
+        # Check if connectors exist before drawing
+        if from_connector and to_connector:
+            from_x, from_y = from_connector
+            to_x, to_y = to_connector
+            self.canvas.create_line(from_x, from_y, to_x, to_y,
+                                   fill='blue', width=2, tags='connection')
     
     def redraw_connections(self):
         """Redraw all connections"""
