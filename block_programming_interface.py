@@ -1,40 +1,41 @@
+# Updated block_programming_interface.py
+
+# Import necessary libraries
+
 class BlockProgrammingInterface:
     def __init__(self):
-        self.connections = []  # List to store connections
-        self.connection_line_ids = {}  # To store line IDs
+        self.connections = []  # To store current connections
+        self.connection_lines = {}  # To track line IDs
 
-    def validate_connection(self, output_block, input_connector):
-        # Ensure output blocks only connect to input connectors
-        if output_block.type != 'output' or input_connector.type != 'input':
-            raise ValueError("Invalid connection: An output block cannot be connected to another output block.")
+    def add_connection(self, output, input):
+        # Validation: Ensure connections are output to input
+        if not self.validate_connection(output, input):
+            raise ValueError("Invalid connection: must connect output to input.")
 
-    def add_connection(self, output_block, input_connector):
-        self.validate_connection(output_block, input_connector)
-        connection_id = len(self.connections)
-        self.connections.append((output_block, input_connector))
-        self.connection_line_ids[connection_id] = self.draw_connection(output_block, input_connector)
-        self.highlight_connector(input_connector)
+        # Add the connection
+        connection_id = self.create_connection_line(output, input)
+        self.connections.append((output, input))
+        self.connection_lines[connection_id] = (output, input)
 
-    def remove_connection(self, connection_id):
-        if connection_id in self.connection_line_ids:
-            # Logic to remove the wire (depends on the drawing library used)
-            self.delete_connection_line(self.connection_line_ids[connection_id])
-            del self.connection_line_ids[connection_id]
-            del self.connections[connection_id]
+    def validate_connection(self, output, input):
+        # Add condition to check that output and input are valid
+        return output.is_output() and input.is_input()
 
-    def draw_connection(self, output_block, input_connector):
-        # Method to visually represent the connection (placeholder)
-        pass
+    def remove_connection(self, wire_id):
+        # Remove connection by clicking on wire
+        if wire_id in self.connection_lines:
+            del self.connection_lines[wire_id]
+            self.connections = [c for c in self.connections if c[0] != wire_id]
+            print(f"Connection {wire_id} removed.")
+        else:
+            raise ValueError("No connection found for the given wire ID.")
 
-    def delete_connection_line(self, line_id):
-        # Logic to delete connection line on canvas (placeholder)
-        pass
+    def create_connection_line(self, output, input):
+        # Implementation to create a visual connection line
+        # This will return a unique ID for this connection
+        return len(self.connections) + 1  # Example placeholder logic
 
-    def highlight_connector(self, connector):
-        # Logic to highlight connector points (placeholder)
-        pass
+    def handle_error(self, error):
+        print(f"Error occurred: {error}")  # Improved error checking
 
-    def remove_connection_by_click(self, line_id):
-        # Detect clicks on connection lines and remove them
-        if line_id in self.connection_line_ids:
-            self.remove_connection(line_id)
+    # Additional methods and functionality here
